@@ -8,6 +8,7 @@ import os
 import sys
 import csv
 import cv2
+import glob
 import numpy as np
 from functools import reduce
 
@@ -43,6 +44,32 @@ def process_coords(coords_file, delimiter=" "):
     parsed_coords = list(filter(None, parsed_coords))
 
   return parsed_coords
+
+def create_cv_im_instance(image_path):
+  return {
+    'path': image_path,
+    'cv_im': cv2.imread(image_path)
+  }
+
+def create_cv_im_instances_from_dir(image_dir_path, **kwargs):
+  file_exts = kwargs.get('file_exts', ['jpg', 'png'])
+
+  if not os.path.exists(image_dir_path):
+    sys.stdout.write(f"Directory of Images: {image_dir_path} does not exist\n")
+    sys.exit(1)
+
+  # get all images in the directory that matches the extensions provided
+  images = []
+  for ext in file_exts:
+    images.extend(glob.glob(f"{image_dir_path}/*.{ext}"))
+
+  # terminate if no images are found
+  if len(images) == 0:
+    sys.stdout.write(f"No images in the source directory {image_dir_path}\n")
+    sys.exit(1)
+
+  # convert images list to cv image instances list
+  return list(map(create_cv_im_instance, images))
 
 def create_binary_image(cv_im):
   # convert to grayscale
