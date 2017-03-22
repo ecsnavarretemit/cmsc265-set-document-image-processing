@@ -81,12 +81,15 @@ def processor(images_dir, output_dir, show_logs, extension, coords_file):
         right = x + radius
         bottom = y + radius
 
-        # region of interest
+        # crop the image to the specific region by the coordinates of top, right, bottom, left
+        # or also known as region of interest
         roi = processed[top:bottom, left:right]
 
         # opencv's mean function processes all 4 channels of the image
         # and we need only the first channel since we are processing binary images
         # and discard all the channels other the first channel
+        #
+        # This to determine how much black pixels are present on the cropped area
         (channel1_mean, _, _, _) = cv2.mean(roi)
 
         # define default color for the rectangle
