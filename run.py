@@ -7,37 +7,15 @@
 # Version 1.0.0-alpha1
 
 import os
-import csv
 import cv2
 import numpy as np
-from functools import reduce
+from app import process_coords
 
 ###################################
 # [parsing coordinates file] ::start
 ###################################
 
-parsed_coords = None
-data_file = os.path.join(os.getcwd(), "assets/docs/fields39.csv")
-with open(data_file, "r") as csv_data_file:
-  reader = csv.reader(csv_data_file, delimiter=" ")
-
-  def reduce_fn(accumulated_value, value):
-    # remove the empty strings and convert all items in the list to integer
-    filtered_row = list(map(int, filter(None, value)))
-
-    # chunk the list to smaller chunks consisting (x and y positions)
-    chunk_coordinates = [filtered_row[i:i + 2] for i in range(0, len(filtered_row), 2)]
-
-    # add to the list of accumulated values
-    accumulated_value.append(chunk_coordinates)
-
-    return accumulated_value
-
-  # reduce the the coordinates in to a single list of lists
-  parsed_coords = reduce(reduce_fn, reader, [])
-
-  # remove empty lists in the reduced_value
-  parsed_coords = list(filter(None, parsed_coords))
+parsed_coords = process_coords(os.path.join(os.getcwd(), "assets/docs/fields39.csv"))
 
 ###################################
 # [parsing coordinates file] ::end
