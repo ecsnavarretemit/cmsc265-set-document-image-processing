@@ -9,7 +9,7 @@
 import os
 import cv2
 import numpy as np
-from app import process_coords
+from app import process_coords, create_binary_image
 
 ###################################
 # [parsing coordinates file] ::start
@@ -29,13 +29,7 @@ parsed_coords = process_coords(os.path.join(os.getcwd(), "assets/docs/fields39.c
 image = os.path.join(os.getcwd(), "assets/img/forms/0002.jpg")
 cv_image = cv2.imread(image)
 
-# convert to grayscale
-gray_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-
-_, processed = cv2.threshold(gray_image ,0 , 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-kernel_opening = np.ones((5, 5), np.uint8)
-processed = cv2.morphologyEx(processed, cv2.MORPH_OPEN, kernel_opening)
+processed = create_binary_image(cv_image)
 
 shape_thickness = 2
 crossed_shape_color = (255, 0, 0)

@@ -7,6 +7,8 @@
 import os
 import sys
 import csv
+import cv2
+import numpy as np
 from functools import reduce
 
 def process_coords(coords_file, delimiter=" "):
@@ -41,5 +43,16 @@ def process_coords(coords_file, delimiter=" "):
     parsed_coords = list(filter(None, parsed_coords))
 
   return parsed_coords
+
+def create_binary_image(cv_im):
+  # convert to grayscale
+  gray_image = cv2.cvtColor(cv_im, cv2.COLOR_BGR2GRAY)
+
+  _, processed = cv2.threshold(gray_image, 0 , 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+  kernel_opening = np.ones((5, 5), np.uint8)
+  processed = cv2.morphologyEx(processed, cv2.MORPH_OPEN, kernel_opening)
+
+  return processed
 
 
