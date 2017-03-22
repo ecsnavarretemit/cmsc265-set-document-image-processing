@@ -32,7 +32,8 @@ Follow these steps to install the setup the application:
 
 ## Running the Program
 
-You can run the python scripts by invoking `python <program>.py` or `./<program>.py`
+You can run the python scripts by invoking `python run.py <form_images_directory> <output_directory>` or `./run.py <form_images_directory> <output_directory>`.
+For more information run `python run.py --help` or `./run.py --help`.
 
 ## License
 
