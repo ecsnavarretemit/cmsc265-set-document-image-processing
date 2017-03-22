@@ -42,7 +42,7 @@ def processor(images_dir, output_dir, show_logs, extension, coords_file):
     if show_logs is True:
       click.echo(f"Processing Image: {item['path']}")
 
-    # conver the image to binary
+    # convert the image to binary
     processed = create_binary_image(cv_image)
 
     shape_thickness = 2
@@ -110,7 +110,7 @@ def processor(images_dir, output_dir, show_logs, extension, coords_file):
         if is_shaded is True:
           statistics[stat_key] += 1
 
-    # write the manipulated image to the detsination folder
+    # write the manipulated image to the destination folder
     cv2.imwrite(f"{destination_folder}/{img_basename}", cv_image)
 
     # save the statistics in a text file
