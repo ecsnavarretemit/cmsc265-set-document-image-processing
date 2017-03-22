@@ -9,7 +9,7 @@
 import os
 import cv2
 import numpy as np
-from app import process_coords, create_binary_image
+from app import process_coords, create_binary_image, create_cv_im_instances_from_dir
 
 ###################################
 # [parsing coordinates file] ::start
@@ -26,51 +26,87 @@ parsed_coords = process_coords(os.path.join(os.getcwd(), "assets/docs/fields39.c
 ###################################
 
 # read the image
-image = os.path.join(os.getcwd(), "assets/img/forms/0002.jpg")
-cv_image = cv2.imread(image)
+destination_folder = os.path.join(os.getcwd(), "output")
+cv_images = create_cv_im_instances_from_dir("assets/img/forms")
 
-processed = create_binary_image(cv_image)
+# create the folder if it does not exist
+if os.path.exists(destination_folder) is False:
+  os.mkdir(destination_folder)
 
-shape_thickness = 2
-crossed_shape_color = (255, 0, 0)
-shaded_shape_color = (0, 0, 255)
-blank_shape_color = (0, 255, 0)
+for item in cv_images:
+  img_basename = os.path.basename(item['path'])
+  cv_image = item['cv_im']
+  processed = create_binary_image(cv_image)
 
-radius = 8
+  shape_thickness = 2
+  crossed_shape_color = (255, 0, 0)
+  shaded_shape_color = (0, 0, 255)
+  blank_shape_color = (0, 255, 0)
 
-for row in parsed_coords:
-  for coords in row:
-    # extract x and y coordinates
-    [x, y] = coords
+  radius = 8
 
-    # get corners of the border based on the x and y coords along with the radius
-    top = y - radius
-    left = x - radius
-    right = x + radius
-    bottom = y + radius
+  statistics = {
+    'SA': 0,
+    'A': 0,
+    'SLA': 0,
+    'NAD': 0,
+    'SLD': 0,
+    'D': 0,
+    'SD': 0
+  }
 
-    # region of interest
-    roi = processed[top:bottom, left:right]
+  statistics_keys = list(statistics.keys())
 
-    # opencv's mean function processes all 4 channels of the image
-    # and we need only the first channel since we are processing binary images
-    # and discard all the channels other the first channel
-    (channel1_mean, _, _, _) = cv2.mean(roi)
+  for row in parsed_coords:
+    for idx, coords in enumerate(row):
+      # flag to determine if the item is shaded or not
+      is_shaded = False
 
-    # define default color for the rectangle
-    shape_color = blank_shape_color
+      # identify where the item resides in the choices
+      stat_key = statistics_keys[idx]
 
-    # override the default rectangle color
-    if channel1_mean < 69:
-      shape_color = crossed_shape_color
-    elif channel1_mean < 135 and channel1_mean > 69:
-      shape_color = shaded_shape_color
+      # extract x and y coordinates
+      [x, y] = coords
 
-    # draw the rectangles
-    cv2.rectangle(cv_image, (left, top), (right, bottom), shape_color, 2)
+      # get corners of the border based on the x and y coords along with the radius
+      top = y - radius
+      left = x - radius
+      right = x + radius
+      bottom = y + radius
 
-cv2.imshow('test', cv2.pyrDown(cv_image))
-cv2.waitKey(0)
+      # region of interest
+      roi = processed[top:bottom, left:right]
+
+      # opencv's mean function processes all 4 channels of the image
+      # and we need only the first channel since we are processing binary images
+      # and discard all the channels other the first channel
+      (channel1_mean, _, _, _) = cv2.mean(roi)
+
+      # define default color for the rectangle
+      shape_color = blank_shape_color
+
+      # override the default rectangle color
+      if channel1_mean < 69:
+        shape_color = crossed_shape_color
+      elif channel1_mean < 135 and channel1_mean > 69:
+        shape_color = shaded_shape_color
+
+        is_shaded = True
+
+      # draw the rectangles
+      cv2.rectangle(cv_image, (left, top), (right, bottom), shape_color, 2)
+
+      # add one to the matched stat value
+      if is_shaded is True:
+        statistics[stat_key] += 1
+
+  # write the manipulated image to the detsination folder
+  cv2.imwrite(f"{destination_folder}/{img_basename}", cv_image)
+
+  # save the statistics in a text file
+  with open(f"{destination_folder}/{img_basename}.txt", 'w') as stat_file:
+    for key, val in statistics.items():
+      stat_file.write(f"{key} = {val}\n")
 
 ###################################
 # [image processing] ::end
